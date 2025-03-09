@@ -1,5 +1,7 @@
 import 'package:ekawi/common/home_page.dart';
+import 'package:ekawi/screens/ai_recommendations_page.dart'; // Import the new page
 import 'package:ekawi/screens/analytics_page.dart';
+import 'package:ekawi/screens/energy_usage.dart';
 import 'package:ekawi/screens/facility_page.dart';
 import 'package:ekawi/screens/reports_page.dart';
 import 'package:flutter/material.dart';
@@ -20,11 +22,13 @@ class _MyBottomNavBarState extends State<MyBottomNavBar> {
     });
   }
 
+  // Add the AI Recommendations page to the list of pages
   static const List<Widget> _pages = <Widget>[
     HomePage(),
     FacilityPage(),
-    UsageAnalyticsScreen(),
-    EnergyDataTableScreen()
+    EnergyUsageGraph(),
+    AIRecommendationsScreen(),
+    DeviceUsage(),
   ];
 
   @override
@@ -46,6 +50,10 @@ class _MyBottomNavBarState extends State<MyBottomNavBar> {
           BottomNavigationBarItem(
             icon: Icon(Icons.analytics),
             label: 'Analytics',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.psychology), // You can change the icon
+            label: 'AI',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.description),

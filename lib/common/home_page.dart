@@ -39,8 +39,7 @@ class _HomePageState extends State<HomePage> {
                   if (selectedDate != null) {
                     setState(() {
                       selectedDate = selectedDate;
-                      dateController.text =
-                          "${selectedDate?.year}-${selectedDate?.day}-${selectedDate?.month}";
+                      dateController.text = "${selectedDate?.year}-${selectedDate?.day}-${selectedDate?.month}";
                     });
 
                     Navigator.pop(context);
@@ -61,14 +60,14 @@ class _HomePageState extends State<HomePage> {
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      title: const Text('Hostel H &J Energy Management'),
+      title: const Text('Energy Audit'),
     );
   }
 
   Widget _buildFloatingActionButton() {
     return FloatingActionButton(
       onPressed: () => _showAddDialog(),
-      shape: CircleBorder(),
+      shape: const CircleBorder(),
       child: const Icon(Icons.add),
     );
   }
@@ -81,14 +80,14 @@ class _HomePageState extends State<HomePage> {
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: Text('Add Energy Usage'),
+            title: const Text('Add Energy Usage'),
             content: Form(
               key: _formKey,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   DropdownButtonFormField<String>(
-                      hint: Text('Select Hostel To Insert Data'),
+                      hint: const Text('Select Hostel To Insert Data'),
                       validator: (String? value) {
                         if (value == null || value.isEmpty) {
                           return 'Please select hostel';
@@ -106,11 +105,11 @@ class _HomePageState extends State<HomePage> {
                         }
                       },
                       decoration: InputDecoration(
-                          contentPadding: EdgeInsets.all(5),
+                          contentPadding: const EdgeInsets.all(5),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                           )),
-                      items: [
+                      items: const [
                         DropdownMenuItem(
                           value: 'HOSTEL H',
                           child: Row(
@@ -118,7 +117,7 @@ class _HomePageState extends State<HomePage> {
                             children: [
                               Icon(
                                 Icons.gite,
-                                color: theme.primaryColor,
+                                color: Colors.blue,
                               ),
                               Text('HOSTEL H')
                             ],
@@ -131,9 +130,33 @@ class _HomePageState extends State<HomePage> {
                               children: [
                                 Icon(
                                   Icons.gite,
-                                  color: theme.primaryColor,
+                                  color: Colors.blue,
                                 ),
                                 Text('HOSTEL J')
+                              ],
+                            )),
+                            DropdownMenuItem(
+                            value: 'Soweto',
+                            child: Row(
+                              spacing: 4,
+                              children: [
+                                Icon(
+                                  Icons.gite,
+                                  color: Colors.blue,
+                                ),
+                                Text('Soweto')
+                              ],
+                            )),
+                            DropdownMenuItem(
+                            value: 'Students\' center',
+                            child: Row(
+                              spacing: 4,
+                              children: [
+                                Icon(
+                                  Icons.gite,
+                                  color: Colors.blue,
+                                ),
+                                Text('Students\' center')
                               ],
                             )),
                       ],
@@ -148,7 +171,7 @@ class _HomePageState extends State<HomePage> {
                     height: size.height * .02,
                   ),
                   DropdownButtonFormField<String>(
-                      hint: Text('Select Appliance'),
+                      hint: const Text('Select Appliance'),
                       validator: (String? value) {
                         if (value == null || value.isEmpty) {
                           return 'Please select an appliance';
@@ -166,11 +189,11 @@ class _HomePageState extends State<HomePage> {
                         }
                       },
                       decoration: InputDecoration(
-                          contentPadding: EdgeInsets.all(5),
+                          contentPadding: const EdgeInsets.all(5),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                           )),
-                      items: [
+                      items: const [
                         DropdownMenuItem(
                           value: 'Kettle',
                           child: Row(
@@ -178,48 +201,203 @@ class _HomePageState extends State<HomePage> {
                             children: [
                               Icon(
                                 Icons.local_cafe,
-                                color: theme.primaryColor,
+                                color: Colors.blue,
                               ),
                               Text('Kettle')
                             ],
                           ),
                         ),
                         DropdownMenuItem(
-                          value: 'Charging',
+                          value: 'Phone',
                           child: Row(
                             spacing: 4,
                             children: [
                               Icon(
-                                Icons.electric_scooter,
-                                color: theme.primaryColor,
+                                Icons.phone_android,
+                                color: Colors.blue,
                               ),
-                              Text('Charging')
+                              Text('Phone')
                             ],
                           ),
                         ),
                         DropdownMenuItem(
-                          value: 'Lighting',
+                          value: 'Laptop',
                           child: Row(
                             spacing: 4,
                             children: [
                               Icon(
-                                Icons.light,
-                                color: theme.primaryColor,
+                                Icons.laptop,
+                                color: Colors.blue,
                               ),
-                              Text('Lighting')
+                              Text('Laptop')
                             ],
                           ),
                         ),
                         DropdownMenuItem(
-                          value: 'Cooking',
+                          value: 'Woofer',
                           child: Row(
                             spacing: 4,
                             children: [
                               Icon(
-                                Icons.fire_hydrant,
-                                color: theme.primaryColor,
+                                Icons.speaker,
+                                color: Colors.blue,
                               ),
-                              Text('Cooking')
+                              Text('Woofer')
+                            ],
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Fluorescent Tubes',
+                          child: Row(
+                            spacing: 4,
+                            children: [
+                              Icon(
+                                Icons.lightbulb,
+                                color: Colors.blue,
+                              ),
+                              Text('Fluorescent Tubes')
+                            ],
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Cooking Coil',
+                          child: Row(
+                            spacing: 4,
+                            children: [
+                              Icon(
+                                Icons.local_fire_department,
+                                color: Colors.blue,
+                              ),
+                              Text('Cooking Coil')
+                            ],
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Iron Box',
+                          child: Row(
+                            spacing: 4,
+                            children: [
+                              Icon(
+                                Icons.iron,
+                                color: Colors.blue,
+                              ),
+                              Text('Iron Box')
+                            ],
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Immersion Heater',
+                          child: Row(
+                            spacing: 4,
+                            children: [
+                              Icon(
+                                Icons.water_drop,
+                                color: Colors.blue,
+                              ),
+                              Text('Immersion Heater')
+                            ],
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Fridge',
+                          child: Row(
+                            spacing: 4,
+                            children: [
+                              Icon(
+                                Icons.kitchen,
+                                color: Colors.blue,
+                              ),
+                              Text('Fridge')
+                            ],
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Printer',
+                          child: Row(
+                            spacing: 4,
+                            children: [
+                              Icon(
+                                Icons.print,
+                                color: Colors.blue,
+                              ),
+                              Text('Printer')
+                            ],
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Air Conditioner',
+                          child: Row(
+                            spacing: 4,
+                            children: [
+                              Icon(
+                                Icons.ac_unit,
+                                color: Colors.blue,
+                              ),
+                              Text('Air Conditioner')
+                            ],
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 'CCTV Cameras',
+                          child: Row(
+                            spacing: 4,
+                            children: [
+                              Icon(
+                                Icons.videocam,color: Colors.blue,
+                              ),
+                              Text('CCTV Cameras')
+                            ],
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 'TV',
+                          child: Row(
+                            spacing: 4,
+                            children: [
+                              Icon(
+                                Icons.tv,
+                                color: Colors.blue,
+                              ),
+                              Text('TV')
+                            ],
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Blow Dry',
+                          child: Row(
+                            spacing: 4,
+                            children: [
+                              Icon(
+                                Icons.air,
+                                color: Colors.blue,
+                              ),
+                              Text('Blow Dry')
+                            ],
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Flat Iron',
+                          child: Row(
+                            spacing: 4,
+                            children: [
+                              Icon(
+                                Icons.straighten,
+                                color: Colors.blue,
+                              ),
+                              Text('Flat Iron')
+                            ],
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Desktop',
+                          child: Row(
+                            spacing: 4,
+                            children: [
+                              Icon(
+                                Icons.desktop_windows,
+                                color: Colors.blue,
+                              ),
+                              Text('Desktop')
                             ],
                           ),
                         ),
@@ -288,11 +466,11 @@ class _HomePageState extends State<HomePage> {
                 onPressed: () {
                   Navigator.pop(context);
                 },
-                child: Text('Cancel'),
+                child: const Text('Cancel'),
               ),
               TextButton(
                 onPressed: _submitHandler,
-                child: Text('Add'),
+                child: const Text('Add'),
               ),
             ],
           );
@@ -321,7 +499,7 @@ class _HomePageState extends State<HomePage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Failed to save energy data.Are you online?.'),
+              content: const Text('Failed to save energy data.Are you online?.'),
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );

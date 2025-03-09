@@ -20,7 +20,7 @@ class EnergyManagementProvider with ChangeNotifier {
 
   Future<void> saveEnergyData(FormModel energyData) async {
     const url =
-        'https://bev-energy-mgmt-default-rtdb.firebaseio.com/energy-data.json';
+        'https://beverline2-c9005-default-rtdb.firebaseio.com/energy-data.json';
     try {
       final response = await _dio.post(url,
           data: json.encode({
@@ -44,7 +44,7 @@ class EnergyManagementProvider with ChangeNotifier {
 
   Future<List<FormModel>> getEnergyData({String? hostelFilter}) async {
     const baseUrl =
-        'https://bev-energy-mgmt-default-rtdb.firebaseio.com/energy-data.json';
+        'https://beverline2-c9005-default-rtdb.firebaseio.com/energy-data.json';
 
     final url = hostelFilter != null
         ? '$baseUrl?orderBy="hostelName"&equalTo="$hostelFilter"'

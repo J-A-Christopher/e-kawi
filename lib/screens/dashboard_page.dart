@@ -1,15 +1,11 @@
-import 'package:ekawi/models/hostel_data_model.dart';
 import 'package:ekawi/widgets/occupancy_card.dart';
-import 'package:ekawi/widgets/quick_actions_card.dart';
 import 'package:ekawi/widgets/reusable_cards.dart';
 import 'package:ekawi/widgets/widgets.dart';
+import 'package:ekawi/widgets/facilities_card.dart'; // Import the FacilitiesCard
 import 'package:flutter/material.dart';
 
 class DashboardPage extends StatelessWidget {
-  
-
-  const DashboardPage(
-      {super.key,});
+  const DashboardPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -20,12 +16,15 @@ class DashboardPage extends StatelessWidget {
         children: [
           EnergyOverviewCard(),
           const SizedBox(height: 16),
+          FacilitiesCard(),
+          const SizedBox(height: 16), 
           AppliancesListCard(),
           const SizedBox(height: 16),
           OccupancyCard(occupancy: 85),
           const SizedBox(height: 16),
-          QuickActionsCard(
-          ),
+          // Add the FacilitiesCard here
+          
+          // QuickActionsCard(), // If you uncomment this, add it here.
         ],
       ),
     );

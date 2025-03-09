@@ -1,142 +1,376 @@
-import 'package:ekawi/providers/energy_mgmt_provider.dart';
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:provider/provider.dart';
-import '../models/form_model.dart';
 
-class EnergyDataTableScreen extends StatefulWidget {
-  const EnergyDataTableScreen({super.key});
+class DeviceUsage extends StatefulWidget {
+  const DeviceUsage({super.key});
 
   @override
-  State<EnergyDataTableScreen> createState() => _EnergyDataTableScreenState();
+  State<DeviceUsage> createState() => _DeviceUsageState();
 }
 
-class _EnergyDataTableScreenState extends State<EnergyDataTableScreen> {
+class _DeviceUsageState extends State<DeviceUsage> {
   String? selectedHostel;
+  List<Map<String, dynamic>> energyData = [];
+  List<Map<String, dynamic>> meterData = [];
+  List<Map<String, dynamic>> filteredData = [];
+  bool isLoading = true;
+  String? errorMessage;
+  String selectedDataType = 'Devices logged'; // Default to devices
+
+  @override
+  void initState() {
+    super.initState();
+    fetchData();
+    fetchMeterData();
+  }
+
+  Future<void> fetchData() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+    try {
+      final response = await http.get(
+        Uri.parse(
+            'https://beverline2-c9005-default-rtdb.firebaseio.com/energy-data.json'),
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic>? data = json.decode(response.body);
+
+        if (data != null) {
+          energyData = data.values
+              .map<Map<String, dynamic>>(
+                  (item) => Map<String, dynamic>.from(item))
+              .toList();
+          filterData();
+        } else {
+          errorMessage = 'No device data found.';
+        }
+      } else {
+        errorMessage = 'Failed to load device data: ${response.statusCode}';
+      }
+    } catch (e) {
+      errorMessage = 'An error occurred fetching device data: $e';
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> fetchMeterData() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+    try {
+      final response = await http.get(
+        Uri.parse(
+            'https://beverline-5ddb2-default-rtdb.firebaseio.com/meterReadings.json'),
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic>? data = json.decode(response.body);
+
+        if (data != null) {
+          meterData = data.values
+              .map<Map<String, dynamic>>(
+                  (item) => Map<String, dynamic>.from(item))
+              .toList();
+          // Convert meterReading to int for proper sorting and calculations
+          meterData.forEach((item) {
+            item['reading'] = int.tryParse(item['meterReading'] ?? '0') ?? 0;
+          });
+          filterData();
+        } else {
+          errorMessage = 'No meter data found.';
+        }
+      } else {
+        errorMessage = 'Failed to load meter data: ${response.statusCode}';
+      }
+    } catch (e) {
+      errorMessage = 'An error occurred fetching meter data: $e';
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  void filterData() {
+    if (selectedHostel == null || selectedHostel!.isEmpty) {
+      filteredData = selectedDataType == 'Devices logged'
+          ? List.from(energyData)
+          : List.from(meterData);
+    } else {
+      filteredData = selectedDataType == 'Devices logged'
+          ? energyData.where((item) => item['hostelName'] == selectedHostel).toList()
+          : meterData.where((item) => item['hostel'] == selectedHostel).toList();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Reports.'),
+        title: DropdownButton<String>(
+          value: selectedDataType,
+          items: <String>['Devices logged', 'Meter readings'].map((String value) {
+            return DropdownMenuItem<String>(
+              value: value,
+              child: Text(value),
+            );
+          }).toList(),
+          onChanged: (String? newValue) {
+            setState(() {
+              selectedDataType = newValue!;
+              filterData();
+              if (selectedDataType == 'Meter readings') {
+                selectedHostel = 'Hostel H & J'; // Set to Hostel H & J
+              } else {
+                selectedHostel = null; // Reset for other data types
+              }
+            });
+          },
+          underline: Container(),
+          style: const TextStyle(color: Colors.white, fontSize: 20),
+        ),
+        automaticallyImplyLeading: false,
         actions: [
           Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: DropdownButton<String>(
-              value: selectedHostel,
-              hint: const Text('Filter Data By Hostel'),
-              items: const [
-                DropdownMenuItem(
-                  value: 'HOSTEL H',
-                  child: Text('HOSTEL H'),
-                ),
-                DropdownMenuItem(
-                  value: 'HOSTEL J',
-                  child: Text('HOSTEL J'),
-                ),
-              ],
-              onChanged: (String? newValue) async {
-                setState(() {
-                  selectedHostel = newValue;
-                });
-              },
-            ),
+            padding: const EdgeInsets.only(right: 8.0),
+            child: selectedDataType == 'Devices logged'
+                ? DropdownButton<String>(
+                    value: selectedHostel,
+                    hint: const Text('Select Hostel'),
+                    items: const [
+                      DropdownMenuItem(value: 'HOSTEL H', child: Text('HOSTEL H')),
+                      DropdownMenuItem(value: 'HOSTEL J', child: Text('HOSTEL J')),
+                      DropdownMenuItem(value: 'Soweto', child: Text('Soweto')),
+                      DropdownMenuItem(value: 'Students\' center', child: Text('Students\' center')),
+                    ],
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        selectedHostel = newValue;
+                        filterData();
+                      });
+                    },
+                  )
+                : const Text('Hostel H & J', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
-      body: FutureBuilder(
-        future: Provider.of<EnergyManagementProvider>(context, listen: false)
-            .getEnergyData(hostelFilter: selectedHostel),
-        builder: (ctx, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(
-                child: LoadingAnimationWidget.threeRotatingDots(
-                    color: Colors.white, size: 40));
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error loading data!'));
-          } else {
-            final energyData = snapshot.data!;
-            return EnergyDataTable(energyData);
-          }
-        },
-      ),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : errorMessage != null
+              ? Center(child: Text(errorMessage!))
+              : Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(height: 10),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.vertical,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: DataTable(
+                              columnSpacing: 20, // Increase spacing between columns
+                              dataRowMaxHeight: 60, // Increase row height
+                              columns: selectedDataType == 'Devices logged'
+                                  ? const [
+                                      DataColumn(label: Text('Hostel')),
+                                      DataColumn(label: Text('Device')),
+                                      DataColumn(label: Text('Rating (kwh)')),
+                                      DataColumn(label: Text('Date')),
+                                    ]
+                                  : const [
+                                      DataColumn(label: Text('Hostel')),
+                                      DataColumn(label: Text('Meter Reading')),
+                                      DataColumn(label: Text('Date')),
+                                    ],
+                              rows: [
+                                ...filteredData.map((item) {
+                                  return DataRow(
+                                      cells: selectedDataType == 'Devices logged'
+                                          ? [
+                                              DataCell(Text(item['hostelName'] ?? '', style: const TextStyle(color: Colors.green, fontFamily: 'Roboto'))),
+                                              DataCell(Text(item['applianceName'] ?? '', style: const TextStyle(color: Colors.green, fontFamily: 'Roboto'))),
+                                              DataCell(Text(item['kwh'].toString() ?? '', style: const TextStyle(color: Colors.green, fontFamily: 'Roboto'))),
+                                              DataCell(Text(item['dateFilled'] ?? '', style: const TextStyle(color: Colors.green, fontFamily: 'Roboto'))),
+                                            ]
+                                          : [
+                                              DataCell(Text(item['hostel'] ?? '', style: const TextStyle(color: Colors.green, fontFamily: 'Roboto'))),
+                                              DataCell(Text(item['reading'].toString() ?? '', style: const TextStyle(color: Colors.green, fontFamily: 'Roboto'))),
+                                              DataCell(Text(item['date'] ?? '', style: const TextStyle(color: Colors.green, fontFamily: 'Roboto'))),
+                                            ]);
+                                }).toList(),
+                                if (selectedDataType == 'Meter readings')
+                                  ..._buildMeterTotals(),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      if (selectedDataType == 'Devices logged')
+                        Center(
+                          child: SizedBox(
+                            height: 120,
+                            child: ListView(
+                              shrinkWrap: true,
+                              scrollDirection: Axis.horizontal,
+                              children: [
+                                _buildConsumptionCard('Lighting'),
+                                _buildConsumptionCard('Heating'),
+                                _buildConsumptionCard('Charging'),
+                              ],
+                            ),
+                          ),
+                          ),
+                    ],
+                  ),
+                ),
     );
   }
-}
 
-class EnergyDataTable extends StatelessWidget {
-  final List<FormModel> energyData;
-  const EnergyDataTable(this.energyData, {super.key});
+  List<DataRow> _buildMeterTotals() {
+    if (filteredData.isEmpty) {
+      return[]; // Return an empty list if there's no data
+    }
 
-  @override
-  Widget build(BuildContext context) {
-    final totalKwh = energyData.fold(0.0, (sum, item) => sum + item.kwh);
-    final size = MediaQuery.of(context).size;
-    final theme = Theme.of(context);
-    final isDarkMode = theme.brightness == Brightness.light;
+    // 1. Sort the data by date
+    filteredData.sort((a, b) => a['date'].compareTo(b['date']));
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: SizedBox(
-        width: size.width,
-        child: DataTable(
-          border: TableBorder.all(
-              color: theme.colorScheme.onSurface.withOpacity(0.3)),
-          headingRowColor: WidgetStateColor.resolveWith(
-            (states) => isDarkMode
-                ? theme.colorScheme.primaryContainer
-                : theme.colorScheme.secondary,
-          ),
-          headingTextStyle: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: theme.colorScheme.onPrimary,
-          ),
-          dataRowHeight: 50,
-          columns: const [
-            DataColumn(label: Text('Usage')),
-            DataColumn(label: Text('kWh')),
-            DataColumn(label: Text('Date Filled')),
-          ],
-          rows: [
-            ...energyData.map((item) {
-              return DataRow(
-                color: WidgetStateColor.resolveWith(
-                  (states) => energyData.indexOf(item) % 2 == 0
-                      ? theme.colorScheme.surfaceContainerHighest
-                      : theme.colorScheme.surface,
-                ),
-                cells: [
-                  DataCell(
-                      Text(item.applianceName, style: TextStyle(fontSize: 14))),
-                  DataCell(Text('${item.kwh.toStringAsFixed(2)} kWh',
-                      style: const TextStyle(
-                          fontSize: 14, fontWeight: FontWeight.bold))),
-                  DataCell(Text(
-                      DateFormat('MMM dd yyyy HH:mm').format(item.dateFilled),
-                      style: const TextStyle(fontSize: 14))),
-                ],
-              );
-            }),
-            DataRow(
-              color: WidgetStateColor.resolveWith(
-                (states) => isDarkMode
-                    ? theme.colorScheme.primaryContainer.withOpacity(0.7)
-                    : theme.colorScheme.secondaryContainer.withOpacity(0.8),
-              ),
-              cells: [
-                const DataCell(Text('TOTAL',
-                    style:
-                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
-                DataCell(Text('${totalKwh.toStringAsFixed(2)} kWh',
-                    style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.bold))),
-                const DataCell(Text('')),
-              ],
+    Map<String, double> hostelTotals = {};
+    Map<String, List<Map<String, dynamic>>> weeklyData = {};
+    int weekNumber = 1;
+    DateTime? currentWeekStart = filteredData.isNotEmpty
+        ? DateFormat('yyyy-MM-dd').parse(filteredData.first['date'])
+        : null;
+
+    for (var item in filteredData) {
+      DateTime itemDate = DateFormat('yyyy-MM-dd').parse(item['date']);
+
+      if (currentWeekStart == null ||
+          itemDate.difference(currentWeekStart!).inDays >= 7) {
+        currentWeekStart = itemDate;
+        weekNumber++;
+      }
+
+      String weekKey = 'Week $weekNumber';
+
+      weeklyData.update(
+        weekKey,
+        (value) => [...value, item],
+        ifAbsent: () => [item],
+      );
+
+      hostelTotals.update(
+        item['hostel'],
+        (value) => value + item['reading'].toDouble(),
+        ifAbsent: () => item['reading'].toDouble(),
+      );
+    }
+
+    List<DataRow> rows =[];
+
+    // Add weekly totals
+    for (var week in weeklyData.entries) {
+      double weekTotal = week.value.fold<double>(
+          0, (sum, item) => sum + item['reading'].toDouble());
+      rows.add(DataRow(cells: [
+        DataCell(Text(week.key)),
+        DataCell(Text(weekTotal.toStringAsFixed(2))),
+        const DataCell(Text('')),
+      ]));
+    }
+
+    // Add overall totals
+    rows.addAll(hostelTotals.entries.map((entry) {
+      return DataRow(cells: [
+        DataCell(Text('${entry.key} Total')),
+        DataCell(Text(entry.value.toStringAsFixed(2))),
+        const DataCell(Text('')),
+      ]);
+    }).toList());
+
+    return rows;
+  }
+
+  Widget _buildConsumptionCard(String category) {
+    double totalConsumption = _calculateTotalConsumption(category);
+    double percentage = _calculateConsumptionPercentage(category);
+
+    return Card(
+      child: Container(
+        padding: const EdgeInsets.all(16.0),
+        width: 150,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              category,
+              style: const TextStyle(
+                  fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '${totalConsumption.toStringAsFixed(2)} kWh',
+              style: const TextStyle(fontSize: 14),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '${percentage.toStringAsFixed(1)}%',
+              style: const TextStyle(fontSize: 12),
             ),
           ],
         ),
       ),
     );
+  }
+
+  double _calculateTotalConsumption(String category) {
+    double total = 0;
+    for (var item in filteredData) {
+      if (item['applianceName'] != null) {
+        String applianceName = item['applianceName'].toLowerCase();
+        if (category == 'Lighting' && applianceName.contains('fluorescent tubes')) {
+          total += item['kwh'];
+        } else if (category == 'Heating' &&
+            (applianceName.contains('kettle') ||
+             applianceName.contains('immersion heater') ||
+             applianceName.contains('air conditioner') ||
+             applianceName.contains('flat iron') ||
+             applianceName.contains('blow dry') ||
+             applianceName.contains('iron box'))) {
+          total += item['kwh'];
+        } else if (category == 'Charging' &&
+            (applianceName.contains('phone') ||
+             applianceName.contains('laptop') ||
+             applianceName.contains('desktop') ||
+             applianceName.contains('woofer') ||
+             applianceName.contains('tv') ||
+             applianceName.contains('printer') ||
+             applianceName.contains('fridge') ||
+             applianceName.contains('cctv cameras'))) {
+          total += item['kwh'];
+        }
+      }
+    }
+    return total;
+  }
+
+  double _calculateConsumptionPercentage(String category) {
+    double totalCategoryConsumption = _calculateTotalConsumption(category);
+    double totalConsumption = filteredData.fold<double>(
+        0, (sum, item) => sum + (item['kwh'] ?? 0));
+    return totalConsumption > 0
+        ? (totalCategoryConsumption / totalConsumption) * 100
+        : 0;
   }
 }

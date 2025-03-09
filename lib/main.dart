@@ -1,5 +1,5 @@
-import 'package:ekawi/common/home_page.dart';
 import 'package:ekawi/providers/energy_mgmt_provider.dart';
+import 'package:ekawi/screens/login.dart';
 import 'package:ekawi/themes/app_theme.dart';
 import 'package:ekawi/utils/bottom_nav_bar.dart';
 import 'package:flutter/material.dart';
@@ -24,6 +24,6 @@ class _EnergyManagementState extends State<EnergyManagement> {
     return MaterialApp(
         theme: AppTheme.dark,
         debugShowCheckedModeBanner: false,
-        home: MyBottomNavBar());
+        home: LoginPage());
   }
 }
